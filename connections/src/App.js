@@ -11,47 +11,80 @@ import {useEffect, useState} from "react";
 // Future additions: Timer,
 
 function App() {
+  const [userObjects, setUserObjects] = useState([]);
   const [userList, setUserList] = useState([]);
-  const [wordsList, setWordsList] = useState([]);
+  const [wordsObjects, setWordsObjects] = useState([]);
+  const [wordsArray, setWordsArray] = useState([]);
   useEffect(() => {
-    axios.get("/connections/words").then((response) => setWordsList(response.results));
+    axios.get("http://localhost:5000/connections/words").then((response) => {
+      setWordsObjects(response.data);
+      const allWords = response.data.reduce((acc, obj) => acc.concat(obj.words), []);
+      setWordsArray(shuffleArray(allWords));
+    });
   }, []);
 
-  console.log(wordsList);
+  const handleUserAddition = (value, index, e) => {
+    let box = document.getElementById(index);
 
-  const handleUserAddition = (value, div) => {
-    console.log(div);
-    if (userList.length <= 3 && !userList.includes(value)) {
-      setUserList((prev) => [...prev, value]);
-      // div.classList.add("bg-gray-500");
-    } else if (userList.includes(value)) {
-      let index = userList.indexOf(value);
-      userList.splice(index, 1);
-      console.log(userList);
+    if (userObjects.length <= 3 && !userObjects.includes(value)) {
+      console.log("Atleast 1");
+
+      setUserObjects((prev) => [...prev, value]);
+      box.style.backgroundColor = "rgb(156 163 175 / 1)";
+    } else if (userObjects.includes(value)) {
+      let index = userObjects.indexOf(value);
+      console.log(index);
+      userObjects.splice(index, 1);
+      box.style.backgroundColor = "rgb(209 213 219 / 1)";
     } else {
       return;
     }
   };
 
-  console.log(userList);
+  function shuffleArray(array) {
+    const shuffledArray = [...array];
+    for (var i = array.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var temp = shuffledArray[i];
+      shuffledArray[i] = shuffledArray[j];
+      shuffledArray[j] = temp;
+    }
+    return shuffledArray;
+  }
 
-  let placeholder = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"];
+  const displayWords = (event) => {
+    return (
+      <>
+        {wordsArray.map((item, index) => (
+          <div
+            className="w-28 bg-gray-300 rounded-md aspect-square grid place-items-center cursor-pointer hover:bg-gray-500 "
+            onClick={(e) => handleUserAddition(item, index, e)}
+            key={index}
+            id={index}
+          >
+            {item}
+          </div>
+        ))}
+      </>
+    );
+  };
+
+  const handleSubmission = () => {
+    if (userObjects.length !== 3) {
+      console.log("Not filled");
+      return;
+    }
+  };
+
+  const handleDeselectAll = () => {};
+
+  console.log(userObjects);
 
   return (
     <div className="h-screen flex flex-col items-center justify-center gap-y-10">
       <div className="text-5xl font-extralight">Groups</div>
-      <div className="grid place-content-center grid-cols-4 grid-rows-4 gap-2">
-        {placeholder.map((index, key) => (
-          <div
-            className="w-28 bg-gray-300 rounded-md aspect-square grid place-items-center cursor-pointer hover:bg-gray-400"
-            onClick={(e) => handleUserAddition(index, e)}
-            key={key}
-            value={1}
-          >
-            {index}
-          </div>
-        ))}
-      </div>
+
+      <div className="grid place-content-center grid-cols-4 grid-rows-4 gap-2">{wordsObjects.length > 0 && displayWords()}</div>
       <div className="flex gap-x-4">
         <button className="border-2 border-gray-500 rounded-full px-3 py-2 font-semibold text-gray-800 hover:bg-gray-500 hover:text-white hover:transition-colors">
           Submit
@@ -59,7 +92,10 @@ function App() {
         <button className="border-2 border-gray-500 rounded-full px-3 py-2 font-semibold text-gray-800 hover:bg-gray-500 hover:text-white hover:transition-colors">
           Deselect All
         </button>
-        <button className="border-2 border-gray-500 rounded-full px-3 py-2 font-semibold text-gray-800 hover:bg-gray-500 hover:text-white hover:transition-colors">
+        <button
+          className="border-2 border-gray-500 rounded-full px-3 py-2 font-semibold text-gray-800 hover:bg-gray-500 hover:text-white hover:transition-colors"
+          onClick={() => setWordsArray(shuffleArray(wordsArray))}
+        >
           Shuffle
         </button>
       </div>
