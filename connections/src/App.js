@@ -1,5 +1,5 @@
+import axios from "axios";
 import {useEffect, useState} from "react";
-
 // Have all solutions in objects grouped within an array
 // Combine and Randomize the objects to then be mapped into the grid
 // When user selects, fill the userList until full
@@ -12,6 +12,12 @@ import {useEffect, useState} from "react";
 
 function App() {
   const [userList, setUserList] = useState([]);
+  const [wordsList, setWordsList] = useState([]);
+  useEffect(() => {
+    axios.get("/connections/words").then((response) => setWordsList(response.results));
+  }, []);
+
+  console.log(wordsList);
 
   const handleUserAddition = (value, div) => {
     console.log(div);
