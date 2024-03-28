@@ -19,14 +19,17 @@ function App() {
   useEffect(() => {
     axios.get("http://localhost:5000/connections/words").then((response) => {
       setWordsObjects(response.data);
+      // reduces the response to gather the accumulative and then create array filled with just the words
       const allWords = response.data.reduce((acc, obj) => acc.concat(obj.words), []);
       setWordsArray(shuffleArray(allWords));
     });
   }, []);
 
   const handleUserAddition = (value, index, e) => {
+    // Div of the clicked box
     let box = document.getElementById(index);
 
+    // If the user has not filled the array and the value is not inside of the array, add it.
     if (userList.length <= 3 && !userList.includes(value)) {
       setUserList((prev) => [...prev, value]);
       setUserObjects((prev) => [
@@ -38,13 +41,17 @@ function App() {
       ]);
       box.style.backgroundColor = "rgb(156 163 175 / 1)";
     } else if (userList.includes(value)) {
+      // Finds the object index that contains the value
       let index = userObjects
         .map((obj) => {
           return obj.word;
         })
         .indexOf(value);
+
+      // Since the index is the same for both useStates, reuse the same index to remove the value
       userObjects.splice(index, 1);
       userList.splice(index, 1);
+
       box.style.backgroundColor = "rgb(209 213 219 / 1)";
     } else {
       return;
@@ -52,6 +59,7 @@ function App() {
   };
 
   function shuffleArray(array) {
+    // Created a new variable so that the useState is rerendered when shuffled
     const shuffledArray = [...array];
     for (var i = array.length - 1; i > 0; i--) {
       var j = Math.floor(Math.random() * (i + 1));
@@ -62,6 +70,7 @@ function App() {
     return shuffledArray;
   }
 
+  // Grid of boxes
   const displayWords = (event) => {
     return (
       <>
@@ -93,6 +102,7 @@ function App() {
     }
   };
 
+  // Grabs each index within the userObject and removes them, also removes the styling of each box
   const handleDeselectAll = () => {
     setUserObjects([]);
     setUserList([]);
@@ -100,8 +110,6 @@ function App() {
       document.getElementById(item.id).style.backgroundColor = "rgb(209 213 219 / 1)";
     });
   };
-
-  console.log(userObjects);
 
   return (
     <div className="h-screen flex flex-col items-center justify-center gap-y-10">
