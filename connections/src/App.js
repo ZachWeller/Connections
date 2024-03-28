@@ -16,6 +16,8 @@ function App() {
   const [userList, setUserList] = useState([]);
   const [wordsObjects, setWordsObjects] = useState([]);
   const [wordsArray, setWordsArray] = useState([]);
+  let lives = 4;
+
   useEffect(() => {
     axios.get("http://localhost:5000/connections/words").then((response) => {
       setWordsObjects(response.data);
@@ -89,10 +91,17 @@ function App() {
   };
 
   const handleSubmission = () => {
-    console.log(userObjects.length);
-
-    if (userObjects.length === 4) {
+    if (userList.length === 4) {
       // Compare userList to each WordObjects
+      wordsObjects.forEach((obj) => {
+        // console.log(obj.words);
+        console.log(userList == obj.words);
+        if (userList.includes(obj.words)) {
+          console.log("SUCCESS");
+        } else {
+          console.log(obj.words, userList);
+        }
+      });
       // If user is wrong, remove a life
       // If user is off by one, tell the user otherwise say shake selected boxes and remove a life
       // If user is correct, merge boxes and move to the top and display the reason
@@ -110,33 +119,36 @@ function App() {
       document.getElementById(item.id).style.backgroundColor = "rgb(209 213 219 / 1)";
     });
   };
-
   return (
-    <div className="h-screen flex flex-col items-center justify-center gap-y-10">
-      <div className="text-5xl font-extralight">Groups</div>
+    <>
+      {lives > 0 && (
+        <div className="h-screen flex flex-col items-center justify-center gap-y-10">
+          <div className="text-5xl font-extralight">Groups</div>
 
-      <div className="grid place-content-center grid-cols-4 grid-rows-4 gap-2">{wordsObjects.length > 0 && displayWords()}</div>
-      <div className="flex gap-x-4">
-        <button
-          className="border-2 border-gray-500 rounded-full px-3 py-2 font-semibold text-gray-800 hover:bg-gray-500 hover:text-white hover:transition-colors"
-          onClick={handleSubmission()}
-        >
-          Submit
-        </button>
-        <button
-          className="border-2 border-gray-500 rounded-full px-3 py-2 font-semibold text-gray-800 hover:bg-gray-500 hover:text-white hover:transition-colors"
-          onClick={() => handleDeselectAll()}
-        >
-          Deselect All
-        </button>
-        <button
-          className="border-2 border-gray-500 rounded-full px-3 py-2 font-semibold text-gray-800 hover:bg-gray-500 hover:text-white hover:transition-colors"
-          onClick={() => setWordsArray(shuffleArray(wordsArray))}
-        >
-          Shuffle
-        </button>
-      </div>
-    </div>
+          <div className="grid place-content-center grid-cols-4 grid-rows-4 gap-2">{wordsObjects.length > 0 && displayWords()}</div>
+          <div className="flex gap-x-4">
+            <button
+              className="border-2 border-gray-500 rounded-full px-3 py-2 font-semibold text-gray-800 hover:bg-gray-500 hover:text-white hover:transition-colors"
+              onClick={() => handleSubmission()}
+            >
+              Submit
+            </button>
+            <button
+              className="border-2 border-gray-500 rounded-full px-3 py-2 font-semibold text-gray-800 hover:bg-gray-500 hover:text-white hover:transition-colors"
+              onClick={() => handleDeselectAll()}
+            >
+              Deselect All
+            </button>
+            <button
+              className="border-2 border-gray-500 rounded-full px-3 py-2 font-semibold text-gray-800 hover:bg-gray-500 hover:text-white hover:transition-colors"
+              onClick={() => setWordsArray(shuffleArray(wordsArray))}
+            >
+              Shuffle
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
