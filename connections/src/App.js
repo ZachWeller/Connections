@@ -43,6 +43,7 @@ function App() {
           id: index,
         },
       ]);
+      console.log("addition", arrayOfUserSelectedWords);
 
       box.style.backgroundColor = "rgb(156 163 175 / 1)";
     } else if (arrayOfUserSelectedWords.includes(value)) {
@@ -56,7 +57,7 @@ function App() {
       // Since the index is the same for both useStates, reuse the same index to remove the value
       objectsOfUserSelectedWords.splice(index, 1);
       arrayOfUserSelectedWords.splice(index, 1);
-
+      console.log("removal:", arrayOfUserSelectedWords);
       box.style.backgroundColor = "rgb(209 213 219 / 1)";
     } else {
       return;
@@ -328,8 +329,17 @@ function App() {
   };
 
   const checkIfAlreadyGuessed = () => {
+    console.log("start");
+    console.log(arrayOfAlreadySelectedGroups, arrayOfUserSelectedWords);
+
+    if (arrayOfAlreadySelectedGroups.length < 1) {
+      setArrayOfAlreadySelectedGroups((prev) => [...prev, arrayOfUserSelectedWords]);
+      return true;
+    }
+
     arrayOfAlreadySelectedGroups.forEach((group) => {
       let correctCount = 0;
+      console.log(group);
       group.forEach((word) => {
         if (arrayOfUserSelectedWords.includes(word)) {
           console.log(word);
