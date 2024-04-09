@@ -14,18 +14,19 @@ import {useEffect, useState} from "react";
 function App() {
   const [objectsOfUserSelectedWords, setObjectsOfUserSelectedWords] = useState([]);
   const [arrayOfUserSelectedWords, setArrayOfUserSelectedWords] = useState([]);
-  const [objectsContainingWordsAndReason, setObjectsContainingWordsAndReasons] = useState([]);
-  const [arrayOfDisplayWords, setArrayOfDisplayWords] = useState([]);
+  const [wordsAndReason, setWordsAndReasons] = useState([]);
+  const [displayWords, setDisplayWords] = useState([]);
   const [amountOfMatches, setAmountOfMatches] = useState(0);
   const [arrayOfMatches, setArrayOfMatches] = useState([]);
   const [lives, setLives] = useState(4);
-  console.log(arrayOfUserSelectedWords);
+  const [arrayOfAlreadySelectedGroups, setArrayOfAlreadySelectedGroups] = useState([]);
+
   useEffect(() => {
     axios.get("http://localhost:5000/connections/words").then((response) => {
-      setObjectsContainingWordsAndReasons(response.data);
+      setWordsAndReasons(response.data);
       // reduces the response to gather the accumulative and then create array filled with just the words
       const allWords = response.data.reduce((acc, obj) => acc.concat(obj.words), []);
-      setArrayOfDisplayWords(shuffleArray(allWords));
+      setDisplayWords(shuffleArray(allWords));
     });
   }, []);
 
@@ -81,7 +82,7 @@ function App() {
     if (amountOfMatches === 0) {
       return (
         <div className="grid place-content-center grid-cols-4 grid-rows-4 gap-2">
-          {arrayOfDisplayWords.map((item, index) => (
+          {displayWords.map((item, index) => (
             <div
               className="w-28 bg-gray-300 rounded-md aspect-square grid place-items-center cursor-pointer max-w-full hover:bg-gray-500 "
               onClick={(e) => handleUserAddition(item, index, e)}
@@ -106,7 +107,7 @@ function App() {
             </div>
           </div>
           <div className="grid place-content-center grid-cols-4 grid-rows-3 gap-2">
-            {arrayOfDisplayWords.map((item, index) => (
+            {displayWords.map((item, index) => (
               <div
                 className="w-28 bg-gray-300 rounded-md aspect-square grid place-items-center cursor-pointer hover:bg-gray-500 "
                 onClick={(e) => handleUserAddition(item, index, e)}
@@ -140,7 +141,7 @@ function App() {
             </div>
           </div>
           <div className="grid place-content-center grid-cols-4 grid-rows-2 gap-2">
-            {arrayOfDisplayWords.map((item, index) => (
+            {displayWords.map((item, index) => (
               <div
                 className="w-28 bg-gray-300 rounded-md aspect-square grid place-items-center cursor-pointer hover:bg-gray-500 "
                 onClick={(e) => handleUserAddition(item, index, e)}
@@ -182,7 +183,7 @@ function App() {
             </div>
           </div>
           <div className="grid place-content-center grid-cols-4 grid-rows-1 gap-2">
-            {arrayOfDisplayWords.map((item, index) => (
+            {displayWords.map((item, index) => (
               <div
                 className="w-28 bg-gray-300 rounded-md aspect-square grid place-items-center cursor-pointer hover:bg-gray-500 "
                 onClick={(e) => handleUserAddition(item, index, e)}
@@ -239,12 +240,13 @@ function App() {
   };
 
   const handleSubmission = () => {
-    if (arrayOfUserSelectedWords.length === 4) {
+    if (arrayOfUserSelectedWords.length === 4 && checkIfAlreadyGuessed()) {
+      console.log("shouldnt be here");
       // For each object we set a correct count to start at 0, after we loop through each word array within
       // the object and we see if that word is within the user list and then increase the correct count
-      // Short term have a correct count for each word array and check if each word is within the user list
+      // Short term: have a correct count for each word array and check if each word is within the user list
       let success = false;
-      objectsContainingWordsAndReason.forEach((obj) => {
+      wordsAndReason.forEach((obj) => {
         let correctCount = 0;
         obj.words.forEach((word) => {
           if (arrayOfUserSelectedWords.includes(word)) {
@@ -255,8 +257,8 @@ function App() {
           success = true;
           setAmountOfMatches(amountOfMatches + 1);
           arrayOfUserSelectedWords.forEach((word) => {
-            let index = arrayOfDisplayWords.indexOf(word);
-            arrayOfDisplayWords.splice(index, 1);
+            let index = displayWords.indexOf(word);
+            displayWords.splice(index, 1);
           });
           setArrayOfUserSelectedWords([]);
           setArrayOfMatches((prev) => [...prev, obj]);
@@ -267,12 +269,12 @@ function App() {
       });
 
       if (success === false) {
-        setLives(lives - 1);
+        handleIncorrectInput();
       }
+    } else if (!checkIfAlreadyGuessed()) {
+      console.log("already guessed!");
     } else {
-      // TODO
-      // Tell user to add another one
-      console.log("add more");
+      console.log("add one more");
     }
   };
 
@@ -285,14 +287,85 @@ function App() {
     });
   };
 
+  const handleLives = () => {
+    if (lives === 4) {
+      return (
+        <div className="flex gap-1">
+          <div className="h-3 w-3 bg-gray-500 rounded-full"></div>
+          <div className="h-3 w-3 bg-gray-500 rounded-full"></div>
+          <div className="h-3 w-3 bg-gray-500 rounded-full"></div>
+          <div className="h-3 w-3 bg-gray-500 rounded-full"></div>
+        </div>
+      );
+    }
+
+    if (lives === 3) {
+      return (
+        <div className="flex gap-1">
+          <div className="h-3 w-3 bg-gray-500 rounded-full"></div>
+          <div className="h-3 w-3 bg-gray-500 rounded-full"></div>
+          <div className="h-3 w-3 bg-gray-500 rounded-full"></div>
+        </div>
+      );
+    }
+
+    if (lives === 2) {
+      return (
+        <div className="flex gap-1">
+          <div className="h-3 w-3 bg-gray-500 rounded-full"></div>
+          <div className="h-3 w-3 bg-gray-500 rounded-full"></div>
+        </div>
+      );
+    }
+
+    if (lives === 1) {
+      return (
+        <div className="flex gap-1">
+          <div className="h-3 w-3 bg-gray-500 rounded-full"></div>
+        </div>
+      );
+    }
+  };
+
+  const checkIfAlreadyGuessed = () => {
+    arrayOfAlreadySelectedGroups.forEach((group) => {
+      let correctCount = 0;
+      group.forEach((word) => {
+        if (arrayOfUserSelectedWords.includes(word)) {
+          console.log(word);
+          correctCount++;
+        }
+      });
+      if (correctCount === 4) {
+        console.log("already guessed");
+        return false;
+      } else {
+        setArrayOfAlreadySelectedGroups((prev) => [...prev, arrayOfUserSelectedWords]);
+        return true;
+      }
+    });
+  };
+
+  const handleIncorrectInput = () => {
+    console.log("wrong");
+    setLives(lives - 1);
+    for (let i = 0; i < displayWords.length; i++) {
+      let boxes = document.getElementById(i);
+      boxes.style = "shake";
+    }
+
+    setArrayOfUserSelectedWords([]);
+  };
+
   return (
     <>
       <div className="h-screen flex flex-col items-center justify-center gap-y-10">
         <div className="text-5xl font-extralight">Groups</div>
-        <div className="max-w-screen-sm px-4">{objectsContainingWordsAndReason.length > 0 && lives > 0 && board()}</div>
-        <div className="grid text-center">
-          <div>Lives</div>
-          <div>[****]</div>
+        <div className="max-w-screen-sm px-4">{wordsAndReason.length > 0 && lives > 0 && board()}</div>
+        <div className="grid text-center place-items-center">
+          <div>Mistakes Remaining</div>
+
+          <div>{handleLives()}</div>
         </div>
         {arrayOfMatches.length < 4 && (
           <div className="flex gap-x-4">
@@ -310,7 +383,7 @@ function App() {
             </button>
             <button
               className="border-2 border-gray-500 rounded-full px-3 py-2 font-semibold text-gray-800 hover:bg-gray-500 hover:text-white hover:transition-colors"
-              onClick={() => setArrayOfDisplayWords(shuffleArray(arrayOfDisplayWords))}
+              onClick={() => setDisplayWords(shuffleArray(displayWords))}
             >
               Shuffle
             </button>
