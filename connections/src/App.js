@@ -13,13 +13,13 @@ import {useEffect, useState} from "react";
 
 function App() {
   const [objectsOfUserSelectedWords, setObjectsOfUserSelectedWords] = useState([]);
-  const [arrayOfUserSelectedWords, setArrayOfUserSelectedWords] = useState([]);
+  const [userSelectedWords, setUserSelectedWords] = useState([]);
   const [wordsAndReason, setWordsAndReasons] = useState([]);
   const [displayWords, setDisplayWords] = useState([]);
   const [amountOfMatches, setAmountOfMatches] = useState(0);
   const [arrayOfMatches, setArrayOfMatches] = useState([]);
   const [lives, setLives] = useState(4);
-  const [arrayOfAlreadySelectedGroups, setArrayOfAlreadySelectedGroups] = useState([]);
+  const [alreadySelectedGroups, setAlreadySelectedGroups] = useState([]);
 
   useEffect(() => {
     axios.get("http://localhost:5000/connections/words").then((response) => {
@@ -30,12 +30,12 @@ function App() {
     });
   }, []);
 
-  const handleUserAddition = (value, index, e) => {
+  const handleUserAddition = (value, index) => {
     let box = document.getElementById(index);
 
     // If the user has not filled the array and the value is not inside of the array, add it.
-    if (arrayOfUserSelectedWords.length <= 3 && !arrayOfUserSelectedWords.includes(value)) {
-      setArrayOfUserSelectedWords((prev) => [...prev, value]);
+    if (userSelectedWords.length <= 3 && !userSelectedWords.includes(value)) {
+      setUserSelectedWords((prev) => [...prev, value]);
       setObjectsOfUserSelectedWords((prev) => [
         ...prev,
         {
@@ -43,24 +43,35 @@ function App() {
           id: index,
         },
       ]);
-      console.log("addition", arrayOfUserSelectedWords);
 
-      box.style.backgroundColor = "rgb(156 163 175 / 1)";
-    } else if (arrayOfUserSelectedWords.includes(value)) {
+      box.classList.add("bg-gray-500");
+    } else if (userSelectedWords.includes(value)) {
       // Finds the object index that contains the value
-      let index = objectsOfUserSelectedWords
+      let objectIndex = objectsOfUserSelectedWords
         .map((obj) => {
           return obj.word;
         })
         .indexOf(value);
-
+      let arrayIndex = userSelectedWords.indexOf(value);
       // Since the index is the same for both useStates, reuse the same index to remove the value
-      objectsOfUserSelectedWords.splice(index, 1);
-      arrayOfUserSelectedWords.splice(index, 1);
-      console.log("removal:", arrayOfUserSelectedWords);
-      box.style.backgroundColor = "rgb(209 213 219 / 1)";
+      objectsOfUserSelectedWords.splice(objectIndex, 1);
+      userSelectedWords.splice(arrayIndex, 1);
+      box.classList.remove("bg-gray-500");
     } else {
       return;
+    }
+  };
+
+  // Grabs each index within the userObject and removes them, also removes the styling of each box
+  const handleDeselectAll = () => {
+    console.log(displayWords);
+    console.log(objectsOfUserSelectedWords);
+    if (userSelectedWords.length > 0) {
+      setObjectsOfUserSelectedWords([]);
+      setUserSelectedWords([]);
+      objectsOfUserSelectedWords.forEach((item) => {
+        document.getElementById(item.id).classList.remove("bg-gray-500");
+      });
     }
   };
 
@@ -240,9 +251,18 @@ function App() {
     }
   };
 
-  const handleSubmission = () => {
-    if (arrayOfUserSelectedWords.length === 4 && checkIfAlreadyGuessed()) {
-      console.log("shouldnt be here");
+  const handleSubmission = (e) => {
+    e.preventDefault();
+    if (userSelectedWords.length < 4) {
+      console.log("add one more");
+      return;
+    }
+    if (alreadyGuessed()) {
+      console.log("already guessed");
+      return;
+    }
+
+    if (!alreadyGuessed()) {
       // For each object we set a correct count to start at 0, after we loop through each word array within
       // the object and we see if that word is within the user list and then increase the correct count
       // Short term: have a correct count for each word array and check if each word is within the user list
@@ -250,18 +270,20 @@ function App() {
       wordsAndReason.forEach((obj) => {
         let correctCount = 0;
         obj.words.forEach((word) => {
-          if (arrayOfUserSelectedWords.includes(word)) {
+          if (userSelectedWords.includes(word)) {
             correctCount++;
           }
         });
         if (correctCount === 4) {
           success = true;
           setAmountOfMatches(amountOfMatches + 1);
-          arrayOfUserSelectedWords.forEach((word) => {
+          userSelectedWords.forEach((word) => {
             let index = displayWords.indexOf(word);
             displayWords.splice(index, 1);
+            objectsOfUserSelectedWords.splice(index, 1);
           });
-          setArrayOfUserSelectedWords([]);
+          setUserSelectedWords([]);
+          setObjectsOfUserSelectedWords([]);
           setArrayOfMatches((prev) => [...prev, obj]);
         }
         if (correctCount === 3) {
@@ -272,20 +294,29 @@ function App() {
       if (success === false) {
         handleIncorrectInput();
       }
-    } else if (!checkIfAlreadyGuessed()) {
-      console.log("already guessed!");
-    } else {
-      console.log("add one more");
     }
   };
 
-  // Grabs each index within the userObject and removes them, also removes the styling of each box
-  const handleDeselectAll = () => {
-    setObjectsOfUserSelectedWords([]);
-    setArrayOfUserSelectedWords([]);
-    objectsOfUserSelectedWords.forEach((item) => {
-      document.getElementById(item.id).style.backgroundColor = "rgb(209 213 219 / 1)";
-    });
+  const alreadyGuessed = () => {
+    userSelectedWords.sort();
+
+    if (alreadySelectedGroups.length < 1) {
+      setAlreadySelectedGroups([userSelectedWords]);
+      return false;
+    } else {
+      alreadySelectedGroups.forEach((group) => {
+        group.sort();
+        console.log(JSON.stringify(group) === JSON.stringify(userSelectedWords));
+        if (JSON.stringify(group) === JSON.stringify(userSelectedWords)) {
+          console.log("SAME");
+          return true;
+        } else {
+          setAlreadySelectedGroups((prev) => [...prev, userSelectedWords]);
+          console.log("NOT THE SAME");
+          return false;
+        }
+      });
+    }
   };
 
   const handleLives = () => {
@@ -328,43 +359,15 @@ function App() {
     }
   };
 
-  const checkIfAlreadyGuessed = () => {
-    console.log("start");
-    console.log(arrayOfAlreadySelectedGroups, arrayOfUserSelectedWords);
-
-    if (arrayOfAlreadySelectedGroups.length < 1) {
-      setArrayOfAlreadySelectedGroups((prev) => [...prev, arrayOfUserSelectedWords]);
-      return true;
-    }
-
-    arrayOfAlreadySelectedGroups.forEach((group) => {
-      let correctCount = 0;
-      console.log(group);
-      group.forEach((word) => {
-        if (arrayOfUserSelectedWords.includes(word)) {
-          console.log(word);
-          correctCount++;
-        }
-      });
-      if (correctCount === 4) {
-        console.log("already guessed");
-        return false;
-      } else {
-        setArrayOfAlreadySelectedGroups((prev) => [...prev, arrayOfUserSelectedWords]);
-        return true;
-      }
-    });
-  };
-
   const handleIncorrectInput = () => {
-    console.log("wrong");
     setLives(lives - 1);
     for (let i = 0; i < displayWords.length; i++) {
       let boxes = document.getElementById(i);
-      boxes.style = "shake";
+      boxes.classList.add("animate-[shake_.1s_ease-in-out]");
+      setTimeout(() => {
+        boxes.classList.remove("animate-[shake_.1s_ease-in-out]");
+      }, "1000");
     }
-
-    setArrayOfUserSelectedWords([]);
   };
 
   return (
@@ -381,7 +384,7 @@ function App() {
           <div className="flex gap-x-4">
             <button
               className="border-2 border-gray-500 rounded-full px-3 py-2 font-semibold text-gray-800 hover:bg-gray-500 hover:text-white hover:transition-colors"
-              onClick={() => handleSubmission()}
+              onClick={(e) => handleSubmission(e)}
             >
               Submit
             </button>
