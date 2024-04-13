@@ -254,6 +254,9 @@ function App() {
       console.log("add one more");
       return;
     }
+
+    console.log(alreadyGuessed());
+
     if (alreadyGuessed()) {
       console.log("already guessed");
       return;
@@ -295,25 +298,28 @@ function App() {
   };
 
   const alreadyGuessed = () => {
+    let success;
     userSelectedWords.sort();
     console.log("User Selected Words", userSelectedWords);
 
     console.log("Already Selected Words", alreadySelectedGroups);
     if (alreadySelectedGroups.length < 1) {
-      setAlreadySelectedGroups([userSelectedWords]);
+      setAlreadySelectedGroups((prev) => [...prev, userSelectedWords]);
       return false;
     } else {
       alreadySelectedGroups.forEach((group) => {
-        // console.log(JSON.stringify(group) === JSON.stringify(userSelectedWords));
+        console.log(JSON.stringify(group), JSON.stringify(userSelectedWords));
         if (JSON.stringify(group) === JSON.stringify(userSelectedWords)) {
           console.log("SAME");
-          return true;
+          success = true;
         } else {
           setAlreadySelectedGroups((prev) => [...prev, userSelectedWords]);
           console.log("NOT THE SAME");
-          return false;
+          success = false;
         }
       });
+
+      return success;
     }
   };
 
