@@ -43,7 +43,6 @@ function App() {
           id: index,
         },
       ]);
-
       box.classList.add("bg-gray-500");
     } else if (userSelectedWords.includes(value)) {
       // Finds the object index that contains the value
@@ -64,8 +63,6 @@ function App() {
 
   // Grabs each index within the userObject and removes them, also removes the styling of each box
   const handleDeselectAll = () => {
-    console.log(displayWords);
-    console.log(objectsOfUserSelectedWords);
     if (userSelectedWords.length > 0) {
       setObjectsOfUserSelectedWords([]);
       setUserSelectedWords([]);
@@ -299,14 +296,15 @@ function App() {
 
   const alreadyGuessed = () => {
     userSelectedWords.sort();
+    console.log("User Selected Words", userSelectedWords);
 
+    console.log("Already Selected Words", alreadySelectedGroups);
     if (alreadySelectedGroups.length < 1) {
       setAlreadySelectedGroups([userSelectedWords]);
       return false;
     } else {
       alreadySelectedGroups.forEach((group) => {
-        group.sort();
-        console.log(JSON.stringify(group) === JSON.stringify(userSelectedWords));
+        // console.log(JSON.stringify(group) === JSON.stringify(userSelectedWords));
         if (JSON.stringify(group) === JSON.stringify(userSelectedWords)) {
           console.log("SAME");
           return true;
